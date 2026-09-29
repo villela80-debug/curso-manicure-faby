@@ -1,0 +1,5 @@
+Marcar conteúdo alterado ou sintético no envio
+
+Quando usar: se a narração for feita com voz sintética (TTS / clonagem de voz) que pareça uma pessoa real.
+No YouTube Studio: Detalhes > "Conteúdo alterado" > Sim.
+Se você gravar a narração com a sua própria voz, este aviso não se aplica.
