@@ -1,4 +1,6 @@
 """Gera os cards 1080x1920 do review do Cicaplast Baume B5+."""
+import sys
+
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 W, H = 1080, 1920
@@ -53,9 +55,19 @@ def fundo():
     return im
 
 
-def main():
+# "youtube" (padrão) ou "social": Instagram/TikTok cobrem o topo e a base da
+# tela com a interface do app, então tudo desce e encolhe, e o link vai na bio.
+VARIANTES = {
+    "youtube": {"pasta": "cards", "selo_y": 70, "lado": 900, "fim": "Link na descrição"},
+    "social": {"pasta": "cards-social", "selo_y": 230, "lado": 600, "fim": "Link na bio"},
+}
+
+
+def main(variante="youtube"):
+    v = VARIANTES[variante]
+    cenas = CENAS[:-1] + [(v["fim"], CENAS[-1][1])]
     produto = Image.open("produto.png").convert("RGB")
-    lado = 900
+    lado = v["lado"]
     produto = produto.resize((lado, int(produto.height * lado / produto.width)), Image.LANCZOS)
     mascara = Image.new("L", produto.size, 0)
     ImageDraw.Draw(mascara).rounded_rectangle([0, 0, *produto.size], radius=48, fill=255)
@@ -64,7 +76,7 @@ def main():
         [40, 52, produto.width + 40, produto.height + 52], radius=48, fill=(0, 60, 100, 60))
     sombra = sombra.filter(ImageFilter.GaussianBlur(22))
 
-    for i, (titulo, sub) in enumerate(CENAS, 1):
+    for i, (titulo, sub) in enumerate(cenas, 1):
         im = fundo()
         d = ImageDraw.Draw(im)
 
@@ -72,10 +84,11 @@ def main():
         selo = "PUBLI · link de afiliado"
         fs = fonte(FONTE_B, 34)
         sw = d.textlength(selo, font=fs)
-        d.rounded_rectangle([(W - sw) / 2 - 28, 70, (W + sw) / 2 + 28, 132], radius=31, fill=AZUL)
-        d.text(((W - sw) / 2, 82), selo, font=fs, fill="white")
+        sy = v["selo_y"]
+        d.rounded_rectangle([(W - sw) / 2 - 28, sy, (W + sw) / 2 + 28, sy + 62], radius=31, fill=AZUL)
+        d.text(((W - sw) / 2, sy + 12), selo, font=fs, fill="white")
 
-        x, y = (W - produto.width) // 2, 180
+        x, y = (W - produto.width) // 2, sy + 110
         im.paste(sombra, (x - 40, y - 40), sombra)
         im.paste(produto, (x, y), mascara)
 
@@ -86,8 +99,8 @@ def main():
         fsub = ajusta(d, sub, FONTE, 50, W - 120)
         centralizado(d, yy + 70, sub, fsub, CINZA, 16)
 
-        im.save(f"cards/C{i:02d}.png")
+        im.save(f"{v['pasta']}/C{i:02d}.png")
 
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1] if len(sys.argv) > 1 else "youtube")
